@@ -5,7 +5,8 @@ output: html_document
 
 ###Loading and pre-processing the data
 
-```{r}
+
+```r
 ##ASSUME THE DATA FILE IS IN WORKING DIRECTORY
 file <- "activity.csv"
 data <- read.csv(file) #READ FILE                               #READ THE FILE
@@ -15,7 +16,8 @@ data <- read.csv(file) #READ FILE                               #READ THE FILE
 We first remove missing data from dataset, then split the data per day in order to compute the total steps per day.
 In addition, we calculate both mean and median.
 Based on this, we create an histogram displaying Total Steps per Day, plus mean and median :
-```{r, echo=TRUE}
+
+```r
 completes <- data[!is.na(data$steps),] #CREATE DF REMOVING NA
 incompletes <- data[is.na(data$steps),] #CREATE DF WITH NA ONLY
 byDay <- split(completes, completes$date, drop=TRUE) #SPLIT COMPLETE DATA BY DAY
@@ -29,14 +31,17 @@ abline(v=mean, lty=3, col="red")
 abline(v=median, lty=3, col="green")
 text(mean, 20, pos=4, labels=paste("mean =",mean), col="red")
 text(median, 18, pos=4, labels=paste("median =",median), col="green")
-````
+```
+
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
 
 
 
 ###What is the average daily activity pattern ?
 Here, we make a time series plot (type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis).
 We also display which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps :
-```{r, echo=TRUE}
+
+```r
 byInterval <- split(completes, completes$interval, drop=TRUE)
 intervAvg <- sapply(byInterval, function(x) mean(x$steps))
 
@@ -49,19 +54,30 @@ abline(v=max, lty=3, col="red")
 text(max,max(intervAvg),  
      labels=paste("max = ",as.character(round(max(intervAvg)))), 
      pos=4, col="red") 
-````
+```
+
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
 
 ###Imputing missing values
 
 The total number of missing values in the dataset is 2304 :
-```{r, echo=TRUE}
+
+```r
 str(incompletes)
+```
+
+```
+## 'data.frame':	2304 obs. of  3 variables:
+##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
 ```
 
 
 The strategy for filling in all of the missing values in the dataset will be to use the mean for each 5-minute interval. We can see mean doe not change compare to previous value, while median is changing a little bit :
 
-```{r, echo=TRUE}
+
+```r
 DF <- as.data.frame(intervAvg)  #CREATE INTERIM DATAFRAME TO MANIPULATE ROWNAMES
 DF$steps2 <- rownames(DF)       
 
@@ -81,12 +97,15 @@ abline(v=newmean, lty=3, col="red")
 abline(v=newmedian, lty=3, col="green")
 text(newmean, 20, pos=4, labels=paste("mean =",newmean), col="red")
 text(newmedian, 18, pos=4, labels=paste("median =",newmedian), col="green")
-````
+```
+
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
 
 ###Are there differences in activity patterns between weekdays and weekends?
 
 First, a new variable is created for each record with "weekend" or "weekday" value :
-```{r, echo=TRUE}
+
+```r
 newdata$date <- as.Date(strptime(newdata$date, format="%Y-%m-%d"))      #CONVERT DATE FORMAT
 newdata$day <- weekdays(newdata$date)                                   #CREATE NEW VARIABLE
 
@@ -98,11 +117,12 @@ for (i in 1:nrow(newdata)) {                                            #CHECK I
                 newdata[i,]$day<-"weekday"                                
         }
 }
-````
+```
 
 Then, number of steps are averaged by day and by interval index. In the end, using Lattice, a 2 rows wrapped graph is plotted. It shows different patterns between weekday and weekend.
 
-```{r, echo=TRUE}
+
+```r
 library(lattice)
 library(data.table)
 
@@ -111,3 +131,5 @@ byweekday <- aggregate(newdata$steps, by=list(day=newdata$day, interval=newdata$
 setnames(byweekday,3,c("steps"))
 xyplot(steps ~ interval | day, data=byweekday, layout=c(1,2), type="b")
 ```
+
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png) 
